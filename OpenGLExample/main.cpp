@@ -26,8 +26,8 @@
 #include <GLFW/glfw3.h>
 
 #include "camera.h"
-#include "Mass.h"
-#include "Spring.h"
+#include "boid.h"
+
 
 #define PI 3.14159265359
 
@@ -47,6 +47,7 @@ bool leftmousePressed = false;
 bool rightmousePressed = false;
 bool play = false;
 Camera* activeCamera;
+
 
 GLFWwindow* window = 0;
 
@@ -121,7 +122,60 @@ void resizeCallback(GLFWwindow* window, int width, int height)
 }
 
 
+void readFile(vector<vec3>* filePoints, vector<vec3>* fileNormals, vector<unsigned int>* fileInds, char* filename)
+{
+	ifstream myFile;
+	
+	float x,y,z;
+	vec3 input;
+	unsigned int ind;
+	char nextChar;
 
+	myFile.open(filename);
+	if(myFile.is_open())
+	{
+		myFile >> nextChar;
+		cout << nextChar;
+		while(!myFile.eof())
+		{
+			
+			if(nextChar == 'V')
+			{
+				while(!myFile.eof() && nextChar == 'V')
+				{
+					myFile >> x >> y >> z;
+					filePoints->push_back(vec3(x,y,z));
+					myFile >> nextChar;
+				}
+			}
+			else if (nextChar == 'N')
+			{
+				while(!myFile.eof() && nextChar == 'N')
+				{
+					myFile >> x >> y >> z;
+					fileNormals->push_back(vec3(x,y,z));
+					myFile >> nextChar;
+				}
+			}
+			else if (nextChar == 'I')
+			{
+				while(!myFile.eof() && nextChar == 'I' )
+				{
+					myFile >> ind;
+					fileInds->push_back(ind);
+					myFile >> nextChar;
+				}
+			}
+		}	
+	}
+	else
+	{
+		cout << "File not opened" << endl;
+	}
+	
+	myFile.close();
+	
+}
 
 
 //==========================================================================
@@ -364,8 +418,13 @@ int main(int argc, char *argv[])
 	vector<unsigned int> indices;
 
 	generateSquare(&points, &normals, &indices, 1.f);
-
 	
+	/*Stuff from a file*/
+	vector<vec3> filePoints;
+	vector<vec3> fileNormals;
+	vector<unsigned int> fileInds;
+	char* filename = "boidPos.txt";
+	readFile(&filePoints, &fileNormals, &fileInds, filename);
 
 	Camera cam = Camera(vec3(0, 0, -1), vec3(0, 0, 20));
 	activeCamera = &cam;
@@ -379,16 +438,20 @@ int main(int argc, char *argv[])
     // run an event-triggered main loop
     while (!glfwWindowShouldClose(window))
     {
+		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	//Clear color and depth buffers (Haven't covered yet)
-
+		
 		if(play)
 			{
 				time += dt;	
 			}
 		
-        loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
-        render(vao, 0, indices.size(), program, vbo, points, normals, indices); // call function to draw our scene
-
+        //loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
+        //render(vao, 0, indices.size(), program, vbo, points, normals, indices); // call function to draw our scene
+		
+		loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
+        render(vao, 0, fileInds.size(), program, vbo, filePoints, fileNormals, fileInds); // call function to draw our scene
+		
        
         glfwSwapBuffers(window);// scene is rendered to the back buffer, so swap to front for display
 
