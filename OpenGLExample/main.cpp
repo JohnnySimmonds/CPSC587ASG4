@@ -382,7 +382,32 @@ GLFWwindow* createGLFWWindow()
 
 // ==========================================================================
 // PROGRAM ENTRY POINT
+//TODO Figure out how to draw triangles that are the same size based on a single point right now it draws triangles just werid looking ones
+void drawBoids(vector<Boid> allBoids, vector<vec3>* boidsToDraw, vector<vec3>* boidNorms, vector<unsigned int>* boidInds)
+{
 
+	vec3 currBoid;
+	int currIndNum = 0;
+	for(int i = 0; i < allBoids.size(); i++)
+	{
+		currBoid = allBoids[i].getPos();
+		boidsToDraw->push_back(currBoid);
+		currBoid.x += 0.5f;
+		boidsToDraw->push_back(currBoid);
+		currBoid.y += 0.5f;
+		boidsToDraw->push_back(currBoid);
+		
+		boidNorms->push_back(vec3(1.0f, 0.0f, 0.0f));
+		boidNorms->push_back(vec3(0.0f, 1.0f, 0.0f));
+		boidNorms->push_back(vec3(0.0f, 0.0f, 1.0f));
+		boidInds->push_back(currIndNum);
+		currIndNum += 1;
+		boidInds->push_back(currIndNum);
+		currIndNum += 1;
+		boidInds->push_back(currIndNum);
+	}
+
+}
 int main(int argc, char *argv[])
 {   
     window = createGLFWWindow();
@@ -426,6 +451,21 @@ int main(int argc, char *argv[])
 	char* filename = "boidPos.txt";
 	readFile(&filePoints, &fileNormals, &fileInds, filename);
 
+	Boid firstBoid;
+	firstBoid.setPos(filePoints[0]);
+	Boid secondBoid;
+	secondBoid.setPos(filePoints[1]);
+	Boid thirdBoid;
+	thirdBoid.setPos(filePoints[2]);
+	vector<Boid> boids;
+	vector<vec3> boidsToDraw, boidNorms;
+	vector<unsigned int> boidInds;
+	boids.push_back(firstBoid);
+	boids.push_back(secondBoid);
+	boids.push_back(thirdBoid);
+	
+	drawBoids(boids, &boidsToDraw, &boidNorms, &boidInds); //TODO setup each void for drawing
+
 	Camera cam = Camera(vec3(0, 0, -1), vec3(0, 0, 20));
 	activeCamera = &cam;
 	//float fovy, float aspect, float zNear, float zFar
@@ -449,8 +489,11 @@ int main(int argc, char *argv[])
         //loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
         //render(vao, 0, indices.size(), program, vbo, points, normals, indices); // call function to draw our scene
 		
+		//loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
+       // render(vao, 0, fileInds.size(), program, vbo, filePoints, fileNormals, fileInds); // call function to draw our scene
+			
 		loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
-        render(vao, 0, fileInds.size(), program, vbo, filePoints, fileNormals, fileInds); // call function to draw our scene
+		render(vao, 0, boidInds.size(), program, vbo, boidsToDraw, boidNorms, boidInds); // call function to draw our scene
 		
        
         glfwSwapBuffers(window);// scene is rendered to the back buffer, so swap to front for display

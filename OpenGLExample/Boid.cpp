@@ -1,6 +1,13 @@
 #include "boid.h"
 
-
+Boid::Boid()
+{
+	
+}
+Boid::~Boid()
+{
+	
+}
 void Boid::setPos(vec3 newPos)
 {
 	pos = newPos;
