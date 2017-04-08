@@ -9,7 +9,7 @@
 // Author:  Sonny Chan, University of Calgary
 // Date:    December 2015
 // ==========================================================================
-
+#include "Random.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
+#include <math.h>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -121,6 +122,12 @@ void resizeCallback(GLFWwindow* window, int width, int height)
 	winRatio[1][1] = minDim/float(height);
 }
 
+void printVec3(vec3 toPrint)
+{
+	cout << "X: " << toPrint.x << endl;
+	cout << "Y: " << toPrint.y << endl;
+	cout << "Z: " << toPrint.z << endl;
+}
 
 void readFile(vector<vec3>* filePoints, vector<vec3>* fileNormals, vector<unsigned int>* fileInds, char* filename)
 {
@@ -387,26 +394,89 @@ void drawBoids(vector<Boid> allBoids, vector<vec3>* boidsToDraw, vector<vec3>* b
 {
 
 	vec3 currBoid;
+	vec3 prevBoid;
 	int currIndNum = 0;
+	//cout << "NUMBER OF BOIDS: "<< allBoids.size() << endl;
 	for(int i = 0; i < allBoids.size(); i++)
 	{
-		currBoid = allBoids[i].getPos();
+		
+		currBoid = allBoids[i].getPos().p1;
 		boidsToDraw->push_back(currBoid);
-		currBoid.x += 0.5f;
+		currBoid = allBoids[i].getPos().p2;
 		boidsToDraw->push_back(currBoid);
-		currBoid.y += 0.5f;
+		currBoid = allBoids[i].getPos().p3;
 		boidsToDraw->push_back(currBoid);
+		
 		
 		boidNorms->push_back(vec3(1.0f, 0.0f, 0.0f));
 		boidNorms->push_back(vec3(0.0f, 1.0f, 0.0f));
 		boidNorms->push_back(vec3(0.0f, 0.0f, 1.0f));
+		
 		boidInds->push_back(currIndNum);
 		currIndNum += 1;
 		boidInds->push_back(currIndNum);
 		currIndNum += 1;
 		boidInds->push_back(currIndNum);
+		currIndNum += 1;
 	}
+	
 
+}
+void initBoids(Boid firstBoid, vector<Boid>* allBoids)
+{
+	int numBoids = 5;
+	Random random;
+	allBoids->push_back(firstBoid);
+	float randomNum;
+	Boid prevBoid;
+
+		
+	for(int i = 0; i < numBoids-1; i++)
+	{
+		Boid newBoid;
+		pos newPos;
+		//newBoid.setPos(prevBoid.getPos());
+	//	if(first)
+		//	{
+				newBoid.setPos(firstBoid.getPos());
+	//			first = false;
+	//		}
+		float test = (float) i+1;
+		
+		newPos = newBoid.getPos();
+
+	if(i % 3 == 0)
+	{
+		newPos.p1 += vec3(test, 0, test);
+		newPos.p2 += vec3(test, 0, test);
+		newPos.p3 += vec3(test, 0, test);
+	}
+	else if (i % 3 == 1)
+	{
+		newPos.p1 += vec3(0, test, test);
+		newPos.p2 += vec3(0, test, test);
+		newPos.p3 += vec3(0, test, test);
+	}
+	else
+	{
+		newPos.p1 += vec3(0, 0, test);
+		newPos.p2 += vec3(0, 0, test);
+		newPos.p3 += vec3(0, 0, test);
+	}
+		newBoid.setPos(newPos);
+
+		allBoids->push_back(newBoid);
+
+	}
+}
+vector<Boid> moveBoids(vector<Boid> allBoids)
+{
+	vector<Boid> newBoids = allBoids;
+	for(int i = 0; i < allBoids.size(); i++)
+	{
+		newBoids[i].moveBoid();
+	}
+	return newBoids;
 }
 int main(int argc, char *argv[])
 {   
@@ -449,22 +519,28 @@ int main(int argc, char *argv[])
 	vector<vec3> fileNormals;
 	vector<unsigned int> fileInds;
 	char* filename = "boidPos.txt";
-	readFile(&filePoints, &fileNormals, &fileInds, filename);
-
+	readFile(&filePoints, &fileNormals, &fileInds, filename); //fileNormals and fileInds not used atm not sure how to use for now...
+	
 	Boid firstBoid;
-	firstBoid.setPos(filePoints[0]);
-	Boid secondBoid;
-	secondBoid.setPos(filePoints[1]);
-	Boid thirdBoid;
-	thirdBoid.setPos(filePoints[2]);
+	pos firstPos;
+	firstPos.p1 = filePoints[0];
+	firstPos.p2 = filePoints[1];
+	firstPos.p3 = filePoints[2];
+	firstBoid.setPos(firstPos);
+	
+	
 	vector<Boid> boids;
+	initBoids(firstBoid, &boids);
+	
+	
 	vector<vec3> boidsToDraw, boidNorms;
 	vector<unsigned int> boidInds;
-	boids.push_back(firstBoid);
-	boids.push_back(secondBoid);
-	boids.push_back(thirdBoid);
 	
-	drawBoids(boids, &boidsToDraw, &boidNorms, &boidInds); //TODO setup each void for drawing
+	//boids.push_back(firstBoid);
+	//boids.push_back(secondBoid);
+	//boids.push_back(thirdBoid);
+	//cout<< "BOIDS SIZE: " << boids.size() << endl;
+	 //TODO setup each void for drawing
 
 	Camera cam = Camera(vec3(0, 0, -1), vec3(0, 0, 20));
 	activeCamera = &cam;
@@ -480,7 +556,7 @@ int main(int argc, char *argv[])
     {
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	//Clear color and depth buffers (Haven't covered yet)
-		
+		drawBoids(boids, &boidsToDraw, &boidNorms, &boidInds);
 		if(play)
 			{
 				time += dt;	
@@ -494,7 +570,9 @@ int main(int argc, char *argv[])
 			
 		loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
 		render(vao, 0, boidInds.size(), program, vbo, boidsToDraw, boidNorms, boidInds); // call function to draw our scene
-		
+		boidsToDraw.clear();
+		boidNorms.clear();
+		boidInds.clear();
        
         glfwSwapBuffers(window);// scene is rendered to the back buffer, so swap to front for display
 

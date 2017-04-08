@@ -2,19 +2,44 @@
 
 Boid::Boid()
 {
-	
+
 }
 Boid::~Boid()
 {
+}
+
+void Boid::moveBoid()
+{
+	vec3 v1;
+	vec3 v2;
+	vec3 v3;
+	
+	velocity += v1 + v2 + v3; 
+}
+void Boid::center()
+{
+	vec3 p1 = posBoid.p1;
+	vec3 p2 = posBoid.p2;
+	vec3 p3 = posBoid.p3;
+	float mid = 0.5f;
+	boidCenter.x = mid*p1.x + mid*p2.x + mid*p3.x;
+	boidCenter.y = mid*p1.y + mid*p2.y + mid*p3.y;
+	boidCenter.z = mid*p1.z + mid*p2.z + mid*p3.z;
 	
 }
-void Boid::setPos(vec3 newPos)
+vec3 Boid::getCenter()
 {
-	pos = newPos;
+	center();
+	return boidCenter;
 }
-vec3 Boid::getPos()
+void Boid::setPos(pos newPos)
 {
-	return pos;
+	posBoid = newPos;
+}
+
+pos Boid::getPos()
+{
+	return posBoid;
 }
 void Boid::setVel(vec3 newVel)
 {
