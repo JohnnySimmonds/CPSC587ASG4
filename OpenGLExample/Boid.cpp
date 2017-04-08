@@ -2,20 +2,13 @@
 
 Boid::Boid()
 {
-
+	velocity = vec3(0.1f, 0.1f, 0.1f);
 }
 Boid::~Boid()
 {
 }
 
-void Boid::moveBoid()
-{
-	vec3 v1;
-	vec3 v2;
-	vec3 v3;
-	
-	velocity += v1 + v2 + v3; 
-}
+
 void Boid::center()
 {
 	vec3 p1 = posBoid.p1;

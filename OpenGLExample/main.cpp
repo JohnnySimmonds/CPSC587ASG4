@@ -469,14 +469,71 @@ void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 
 	}
 }
-vector<Boid> moveBoids(vector<Boid> allBoids)
+/*Boids fly to center of neighbours*/
+vec3 ruleOne(Boid boid, vector<Boid> allBoids, int currBoid)
 {
-	vector<Boid> newBoids = allBoids;
+	vec3 v1;
+	vec3 center;
+	//vector<Boid> newBoids = allBoids;
 	for(int i = 0; i < allBoids.size(); i++)
 	{
-		newBoids[i].moveBoid();
+		if(i != currBoid)
+			center += allBoids[i].getCenter();
 	}
-	return newBoids;
+	center = center / (float)(allBoids.size()-1);
+	v1 = (center - boid.getCenter()) / 100.0f;
+	return v1;
+	
+}
+/*Fly small distance from other boids*/
+vec3 ruleTwo(Boid boid, vector<Boid> allBoids, int currBoid)
+{
+	vec3 center = vec3(0.0f,0.0f,0.0f);
+	for(int i = 0; i < allBoids.size(); i++)
+	{
+		if(i != currBoid)
+			{
+				if(length(allBoids[i].getCenter() - boid.getCenter()) < 100.0f)
+				{
+					center -= (allBoids[i].getCenter() - boid.getCenter());
+				}
+			}
+	}
+	
+}
+/*Boids match velocity with neighbours*/
+vec3 ruleThree(Boid boid, vector<Boid> allBoids, int currBoid)
+{
+ 
+	vec3 vel = vec3(0.0f,0.0f,0.0f);
+	for(int i = 0; i < allBoids.size(); i++)
+	{
+		if(i != currBoid)
+			{
+				vel += allBoids[i].getVel();
+			}
+	}
+	vel = vel / (float)(allBoids.size()-1);
+	
+	return (vel - boid.getVel())/ 8.0f;
+}
+Boid moveBoids(vector<Boid> allBoids, int currBoid)
+{
+	Boid currBoidToMove = allBoids[currBoid];
+	vec3 v1 = ruleOne(allBoids[currBoid], allBoids, currBoid);
+	vec3 v2 = ruleTwo(allBoids[currBoid], allBoids, currBoid);
+	vec3 v3 = ruleThree(allBoids[currBoid], allBoids, currBoid);
+	vec3 newVel = currBoidToMove.getVel() + v1 + v2 + v3;
+	
+	currBoidToMove.setVel(newVel);
+	
+	pos newPos = currBoidToMove.getPos();
+	newPos.p1 += newVel;
+	newPos.p2 += newVel;
+	newPos.p3 += newVel;
+	
+	currBoidToMove.setPos(newPos);
+	return currBoidToMove;
 }
 int main(int argc, char *argv[])
 {   

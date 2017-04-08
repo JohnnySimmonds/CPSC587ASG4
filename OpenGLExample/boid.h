@@ -23,7 +23,6 @@ class Boid
 		vec3 getVel();
 		void setOri(mat4 newOri);
 		mat4 getOri();
-		void moveBoid();
 
 		vec3 getCenter();
 
