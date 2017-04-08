@@ -27,6 +27,7 @@ LIBS= 	`pkg-config --static --libs glfw3 gl`
 # are the most commonly used names by convention
 all:
 	$(CC) $(CFLAGS) $(SRC) $(INCLUDES) -o $(EXE) $(LFLAGS) $(LIBS)
+	./$(EXE)
 
 clean:
 	rm $(EXE)

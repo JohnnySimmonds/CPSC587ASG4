@@ -2,7 +2,8 @@
 
 Boid::Boid()
 {
-	velocity = vec3(0.1f, 0.1f, 0.1f);
+	velocity = vec3(0.1f, 0.1f, 0.0f);
+	//velocity = vec3(random(-1.0, 1.0), random(-1.0, 1.0), random(-1.0, 1.0));
 }
 Boid::~Boid()
 {

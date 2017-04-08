@@ -481,7 +481,7 @@ vec3 ruleOne(Boid boid, vector<Boid> allBoids, int currBoid)
 			center += allBoids[i].getCenter();
 	}
 	center = center / (float)(allBoids.size()-1);
-	v1 = (center - boid.getCenter()) / 100.0f;
+	v1 = (center - boid.getCenter()) / 10.0f;
 	return v1;
 	
 }
@@ -493,12 +493,14 @@ vec3 ruleTwo(Boid boid, vector<Boid> allBoids, int currBoid)
 	{
 		if(i != currBoid)
 			{
-				if(length(allBoids[i].getCenter() - boid.getCenter()) < 100.0f)
+				if(length(allBoids[i].getCenter() - boid.getCenter()) < 10.0f)
 				{
 					center -= (allBoids[i].getCenter() - boid.getCenter());
 				}
+				cout << length(allBoids[i].getCenter() - boid.getCenter()) << endl;
 			}
 	}
+	return center;
 	
 }
 /*Boids match velocity with neighbours*/
@@ -515,9 +517,88 @@ vec3 ruleThree(Boid boid, vector<Boid> allBoids, int currBoid)
 	}
 	vel = vel / (float)(allBoids.size()-1);
 	
-	return (vel - boid.getVel())/ 8.0f;
+	return ((vel - boid.getVel())/ 8.0f);
 }
-Boid moveBoids(vector<Boid> allBoids, int currBoid)
+/* limit velocity of boids*/
+vec3 velLim(vec3 vel)
+{
+	float velLimitUpper = 1.0f;
+	if(length(vel) > velLimitUpper && length(vel) > 0)
+		vel = (vel / length(vel)) * velLimitUpper;
+	
+	float velLimitLower = -1.0f;
+	if(length(vel) < velLimitLower && length(vel) < 0)
+		vel = (vel / length(vel)) * velLimitLower;
+	
+	
+	
+	return vel;
+}
+Boid boundBoids(Boid boid)
+{
+
+	vec3 p1 = boid.getPos().p1;
+	vec3 p2 = boid.getPos().p2;
+	vec3 p3 = boid.getPos().p3;
+	float bound = 100.0f;
+	float xMin = -bound, xMax = bound, yMin = -bound, yMax = bound, zMin = -bound, zMax = bound;
+	
+	if(p1.x < xMin)
+		p1.x = xMax;
+	else if(p1.x > xMax)
+		p1.x = xMin;
+		
+	if(p1.y < yMin)
+		p1.y = yMax;
+	else if(p1.y > yMax)
+		p1.y = yMin;
+		
+	if(p1.z < zMin)
+		p1.z = zMax;
+	else if(p1.z > zMax)
+		p1.z = zMin;
+
+	if(p2.x < xMin)
+		p2.x = xMax;
+	else if(p2.x > xMax)
+		p2.x = xMin;
+		
+	if(p2.y < yMin)
+		p2.y = yMax;
+	else if(p2.y > yMax)
+		p2.y = yMin;
+		
+	if(p2.z < zMin)
+		p2.z = zMax;
+	else if(p2.z > zMax)
+		p2.z = zMin;
+		
+	if(p3.x < xMin)
+		p3.x = xMax;
+	else if(p3.x > xMax)
+		p3.x = xMin;
+		
+	if(p3.y < yMin)
+		p3.y = yMax;
+	else if(p3.y > yMax)
+		p3.y = yMin;
+		
+	if(p3.z < zMin)
+		p3.z = zMax;
+	else if(p3.z > zMax)
+		p3.z = zMin;
+	
+	pos newPos;
+	newPos.p1 = p1;
+	newPos.p2 = p2;
+	newPos.p3 = p3;
+	
+	boid.setPos(newPos);
+	
+	
+	return boid;
+}
+Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 {
 	Boid currBoidToMove = allBoids[currBoid];
 	vec3 v1 = ruleOne(allBoids[currBoid], allBoids, currBoid);
@@ -525,6 +606,9 @@ Boid moveBoids(vector<Boid> allBoids, int currBoid)
 	vec3 v3 = ruleThree(allBoids[currBoid], allBoids, currBoid);
 	vec3 newVel = currBoidToMove.getVel() + v1 + v2 + v3;
 	
+	
+
+	newVel = velLim(newVel*dt);
 	currBoidToMove.setVel(newVel);
 	
 	pos newPos = currBoidToMove.getPos();
@@ -533,6 +617,9 @@ Boid moveBoids(vector<Boid> allBoids, int currBoid)
 	newPos.p3 += newVel;
 	
 	currBoidToMove.setPos(newPos);
+	
+	currBoidToMove = boundBoids(currBoidToMove);
+
 	return currBoidToMove;
 }
 int main(int argc, char *argv[])
@@ -607,16 +694,31 @@ int main(int argc, char *argv[])
 	mat4 moveObj = mat4(1.0f);
 	float dt = 0.05f;
 	float time = 0.0f;
-
+	float timestep = 1.0f / 1000.0f;
+	float extratime;
     // run an event-triggered main loop
+    vector<Boid> boidsHold;
     while (!glfwWindowShouldClose(window))
     {
+		dt = 0.01f;
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	//Clear color and depth buffers (Haven't covered yet)
 		drawBoids(boids, &boidsToDraw, &boidNorms, &boidInds);
 		if(play)
 			{
-				time += dt;	
+				//time += dt;
+				dt += extratime;
+				while(dt >= timestep)
+				{	
+					for(int i = 0; i < boids.size(); i++)
+						boidsHold.push_back(moveBoids(boids, i, dt));
+					
+					boids = boidsHold;
+					boidsHold.clear();
+					extratime = dt;
+					dt -= timestep;
+					
+				}
 			}
 		
         //loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
