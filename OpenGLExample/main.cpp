@@ -520,13 +520,13 @@ vec3 ruleThree(Boid boid, vector<Boid> allBoids, int currBoid)
 	return ((vel - boid.getVel())/ 8.0f);
 }
 /* limit velocity of boids*/
-vec3 velLim(vec3 vel)
+vec3 velLim(vec3 vel, float dt)
 {
-	float velLimitUpper = 1.0f;
+	float velLimitUpper = 0.5f;
 	if(length(vel) > velLimitUpper && length(vel) > 0)
 		vel = (vel / length(vel)) * velLimitUpper;
 	
-	float velLimitLower = -1.0f;
+	float velLimitLower = -0.5f;
 	if(length(vel) < velLimitLower && length(vel) < 0)
 		vel = (vel / length(vel)) * velLimitLower;
 	
@@ -534,6 +534,7 @@ vec3 velLim(vec3 vel)
 	
 	return vel;
 }
+/* Bound the boids with in a 100X100X100 cube*/
 Boid boundBoids(Boid boid)
 {
 
@@ -598,6 +599,7 @@ Boid boundBoids(Boid boid)
 	
 	return boid;
 }
+/* Apply rules to move the boids*/
 Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 {
 	Boid currBoidToMove = allBoids[currBoid];
@@ -608,7 +610,7 @@ Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 	
 	
 
-	newVel = velLim(newVel*dt);
+	newVel = velLim(newVel, dt);
 	currBoidToMove.setVel(newVel);
 	
 	pos newPos = currBoidToMove.getPos();
