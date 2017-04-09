@@ -154,14 +154,14 @@ void Boid::resolveForces(float dt)
 	dir = (getCenter() - oldCenter);
 	dir = dir / length(dir);
 
-	
+	ori = lookAt(dir, getCenter(), up);
 	newVelocity = vec3(0.0f,0.0f,0.0f);
-	/*
-	ori = orientation(dir, up);
-	posBoid.p1 = (ori * vec4(posBoid.p1, 1.0f));
-	posBoid.p2 = (ori * vec4(posBoid.p2, 1.0f));
-	posBoid.p3 = (ori * vec4(posBoid.p3, 1.0f));
-	*/
+	
+	//ori = orientation(dir, up);
+	//posBoid.p1 = (ori * vec4(posBoid.p1, 1.0f));
+	//posBoid.p2 = (ori * vec4(posBoid.p2, 1.0f));
+	//posBoid.p3 = (ori * vec4(posBoid.p3, 1.0f));
+	
 }
 
 void Boid::center()

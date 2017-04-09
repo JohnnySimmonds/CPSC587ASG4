@@ -52,7 +52,7 @@ Camera* activeCamera;
 float bound = 50.0f;
 
 float sep = 0.5f; //percent of separation
-float coh = 2.0f; // percent of cohesion
+float coh = 1.0f; // percent of cohesion
 float allign = 1.0f; // percent of alligning speeds 1 = 100%
 
 GLFWwindow* window = 0;
@@ -231,7 +231,7 @@ bool initVAO(GLuint vao, const VertexBuffers& vbo)
 		sizeof(vec3),	//Stride
 		(void*)0			//Offset
 		);
-
+	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.id[VertexBuffers::INDICES]);
 
 	return !CheckGLErrors("initVAO");		//Check for errors in initialize
