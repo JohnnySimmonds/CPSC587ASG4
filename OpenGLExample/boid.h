@@ -24,21 +24,25 @@ class Boid
 		vec3 getVel();
 		void setOri(mat4 newOri);
 		mat4 getOri();
-		void resolveForces();
+		void resolveForces(float dt);
 		vec3 getCenter();
 		void boundBoid();
 		void printVec3(vec3 toPrint);
 		vec3 velLim(vec3 vel);
 		vec3 setBound(vec3 posBoid, float bound);
 		float getRad();
+		void setBound(float boundingBox);
 		
 	private:
+		float bound;
 		void center();
 		pos posBoid;
 		vec3 boidCenter;
 		float radius;
 		vec3 velocity;
 		vec3 newVelocity;
+		vec3 dir;
+		vec3 up;
 		mat4 orientation;
 		
 };

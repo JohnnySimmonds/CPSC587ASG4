@@ -49,7 +49,11 @@ bool leftmousePressed = false;
 bool rightmousePressed = false;
 bool play = false;
 Camera* activeCamera;
+float bound = 50.0f;
 
+float sep = 1.0f; //percent of separation
+float coh = 2.0f; // percent of cohesion
+float allign = 1.0f; // percent of alligning speeds 1 = 100%
 
 GLFWwindow* window = 0;
 
@@ -331,7 +335,32 @@ void render(GLuint vao, int startElement, int numElements, GLuint program, Verte
 
 }
 
+void renderLine(GLuint vao, int startElement, int numElements, GLuint program, VertexBuffers vbo, vector<vec3> points, vector<vec3>normals, vector<unsigned int> indices)
+{
+	
+	
+	glBindVertexArray(vao);		//Use the LINES vertex array
+	glUseProgram(program);
+	
+	loadBuffer(vbo, points, normals, indices);
+	
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1.25f);
+	
+	glDrawElements(
+			GL_LINES,		//What shape we're drawing	- GL_TRIANGLES, GL_LINES, GL_POINTS, GL_QUADS, GL_TRIANGLE_STRIP
+			numElements,		//How many indices
+			GL_UNSIGNED_INT,	//Type
+			(void*)0			//Offset
+			);
+	glDisable(GL_LINE_SMOOTH);
+ 
+	CheckGLErrors("render");
+	glUseProgram(0);
+	glBindVertexArray(0);
 
+
+}
 void generateSquare(vector<vec3>* vertices, vector<vec3>* normals, 
 					vector<unsigned int>* indices, float width)
 {
@@ -423,9 +452,71 @@ void drawBoids(vector<Boid> allBoids, vector<vec3>* boidsToDraw, vector<vec3>* b
 	
 
 }
+void initCube(vector<vec3>* position, vector<vec3>* normals, vector<unsigned int>* indices, float size)
+{
+	size += 2.0f;
+	position->push_back(vec3(-size,size,size)); //0
+	position->push_back(vec3(-size,-size,size)); //1
+	position->push_back(vec3(size,-size,size)); //2
+	position->push_back(vec3(size,size,size)); //3
+	position->push_back(vec3(size,-size,-size)); //4
+	position->push_back(vec3(size,size,-size)); //5
+	position->push_back(vec3(-size,size,-size)); //6
+	position->push_back(vec3(-size,-size,-size)); //7
+	
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	normals->push_back(vec3(1.0f,1.0f,1.0f));
+	
+	indices->push_back(0);
+	indices->push_back(1);
+	
+	indices->push_back(0);
+	indices->push_back(3);
+	
+	indices->push_back(0);
+	indices->push_back(6);
+	
+	indices->push_back(1);
+	indices->push_back(2);
+	
+	indices->push_back(1);
+	indices->push_back(7);
+	
+	indices->push_back(1);
+	indices->push_back(2);
+	
+	indices->push_back(2);
+	indices->push_back(4);
+	
+	indices->push_back(2);
+	indices->push_back(3);
+	
+	indices->push_back(3);
+	indices->push_back(5);
+	
+	indices->push_back(4);
+	indices->push_back(5);
+	
+	indices->push_back(4);
+	indices->push_back(7);
+	
+	indices->push_back(5);
+	indices->push_back(6);
+	
+	indices->push_back(6);
+	indices->push_back(7);
+	
+
+}
 void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 {
-	int numBoids = 5;
+	int numBoids = 100;
 	Random random;
 	allBoids->push_back(firstBoid);
 	float randomNum;
@@ -435,6 +526,7 @@ void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 	for(int i = 0; i < numBoids-1; i++)
 	{
 		Boid newBoid;
+		newBoid.setBound(bound);
 		pos newPos;
 
 		newBoid.setPos(firstBoid.getPos());
@@ -469,76 +561,89 @@ void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 }
 bool neighbours(Boid boidToCompare, Boid currBoid)
 {
-	if(fabs(length(boidToCompare.getCenter() - currBoid.getCenter())) < currBoid.getRad())
+	if(fabs(length(boidToCompare.getCenter() - currBoid.getCenter())) < 10.0f)
 		return true;
 		
 	return false;
 }
-/*Boids fly to center of neighbours*/
-vec3 ruleOne(Boid boid, vector<Boid> allBoids, int currBoid)
-{
-	
-	vec3 v1;
-	vec3 center = vec3(0.0f,0.0f,0.0f);
-	for(int i = 0; i < allBoids.size(); i++)
-	{
-		if(i != currBoid &&  neighbours(allBoids[i], boid))
-			center += allBoids[i].getCenter();
-	}
-	center = center / (float)(allBoids.size()-1.0f);
 
-	v1 = (center - boid.getCenter()) / 10.0f; // dont think this is needed?
-
-	return center;
-	
-}
-/*Fly small distance from other boids*/
-vec3 ruleTwo(Boid boid, vector<Boid> allBoids, int currBoid)
+/*collision avoidence with neighbours*/
+vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid)
 {
-	vec3 center = vec3(0.0f,0.0f,0.0f);
+	vec3 sepForce = vec3(0.0f,0.0f,0.0f);
 	for(int i = 0; i < allBoids.size(); i++)
 	{
 		if(i != currBoid && neighbours(allBoids[i], boid))
-			{
-				if(length(allBoids[i].getCenter() - boid.getCenter()) < 5.0f)
-				{
-					center -= (allBoids[i].getCenter() - boid.getCenter());
-				}
-
-			}
+		{
+			sepForce += allBoids[i].getCenter() - boid.getCenter();
+		}
+		
 	}
-	return center;
+	return -sepForce;
+}
+/*flock centering*/
+vec3 cohesion(Boid boid, vector<Boid> allBoids, int currBoid)
+{
+	vec3 projCenter = vec3(0.0f,0.0f,0.0f);
+
+	vector<Boid> neighboursCurr;
+	for(int i = 0; i < allBoids.size(); i++)
+	{
+		if(i != currBoid && neighbours(allBoids[i], boid))
+		{
+			neighboursCurr.push_back(allBoids[i]);
+		}
+		
+	}
+	if(neighboursCurr.size() == 0)
+		return vec3(0.0f,0.0f,0.0f);
+		
+	for(int i = 0; i < neighboursCurr.size(); i++)
+	{
+		projCenter += neighboursCurr[i].getCenter()/(float)neighboursCurr.size();
+	}
+
+		
+	vec3 cohesionDisp = projCenter - boid.getCenter();
+	return cohesionDisp;
 	
 }
-
-/*Boids match velocity with neighbours*/
-vec3 ruleThree(Boid boid, vector<Boid> allBoids, int currBoid)
+/*Matching velocity*/
+vec3 allignment(Boid boid, vector<Boid> allBoids, int currBoid)
 {
+	vector<Boid> neighboursCurr;
+	vec3 allign = vec3(0.0f,0.0f,0.0f);
+	for(int i = 0; i < allBoids.size(); i++)
+	{
+		if(i != currBoid && neighbours(allBoids[i], boid))
+		{
+			neighboursCurr.push_back(allBoids[i]);
+		}
+		
+	}
+	if(neighboursCurr.size() == 0)
+		return vec3(0.0f,0.0f,0.0f);
+		
+	for(int i = 0; i < neighboursCurr.size(); i++)
+	{
+		allign += neighboursCurr[i].getVel()/(float)neighboursCurr.size();
+	}
  
-	vec3 vel = vec3(0.0f,0.0f,0.0f);
-	for(int i = 0; i < allBoids.size(); i++)
-	{
-		if(i != currBoid && neighbours(allBoids[i], boid))
-			{
-				vel += allBoids[i].getVel();
-			}
-	}
-	vel = vel / (float)(allBoids.size()-1);
-	vel = ((vel - boid.getVel()) / 8.0f);
-	
-	return vel;
+	return allign;
 }
 
 /* Apply rules to move the boids*/
 Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 {
 	Boid currBoidToMove = allBoids[currBoid];
-	vec3 v1 = ruleOne(allBoids[currBoid], allBoids, currBoid);
-	vec3 v2 = ruleTwo(allBoids[currBoid], allBoids, currBoid);
-	vec3 v3 = ruleThree(allBoids[currBoid], allBoids, currBoid);
+
+	vec3 v1 = separation(allBoids[currBoid], allBoids, currBoid);
+	vec3 v2 = cohesion(allBoids[currBoid], allBoids, currBoid);
+	vec3 v3 = allignment(allBoids[currBoid], allBoids, currBoid);	
 	
-	
-	vec3 newVel = currBoidToMove.getVel() + v1 + v2 + v3;
+
+
+	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3;
 	currBoidToMove.setVel(newVel);
 
 	return currBoidToMove;
@@ -587,6 +692,7 @@ int main(int argc, char *argv[])
 	readFile(&filePoints, &fileNormals, &fileInds, filename); //fileNormals and fileInds not used atm not sure how to use for now...
 	
 	Boid firstBoid;
+	firstBoid.setBound(bound);
 	pos firstPos;
 	firstPos.p1 = filePoints[0];
 	firstPos.p2 = filePoints[1];
@@ -601,7 +707,10 @@ int main(int argc, char *argv[])
 	vector<vec3> boidsToDraw, boidNorms;
 	vector<unsigned int> boidInds;
 	
-
+	vector<vec3> bounds, boundNorms;
+	vector<unsigned int> boundInds;
+	
+	initCube(&bounds, &boundNorms, &boundInds, bound);
 
 	Camera cam = Camera(vec3(0, 0, -1), vec3(0, 0, 20));
 	activeCamera = &cam;
@@ -631,7 +740,7 @@ int main(int argc, char *argv[])
 						boids[i] = moveBoids(boids, i, dt);
 					
 					for(int i = 0; i <boids.size(); i++)
-						boids[i].resolveForces();
+						boids[i].resolveForces(dt);
 			
 			
 					extratime = dt;
@@ -648,6 +757,11 @@ int main(int argc, char *argv[])
 			
 		loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
 		render(vao, 0, boidInds.size(), program, vbo, boidsToDraw, boidNorms, boidInds); // call function to draw our scene
+		
+		loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
+		renderLine(vao, 0, boundInds.size(), program, vbo, bounds, boundNorms, boundInds); // call function to draw our scene
+		
+		
 		boidsToDraw.clear();
 		boidNorms.clear();
 		boidInds.clear();

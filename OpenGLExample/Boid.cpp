@@ -18,10 +18,15 @@ Boid::Boid()
 			z = dist(gen);
     } 
 	velocity = vec3(x,y,z);
-	radius = 10.0f;
+	radius = 50.0f;
+
 }
 Boid::~Boid()
 {
+}
+void Boid::setBound(float boundingBox)
+{
+	bound = boundingBox;
 }
 float Boid::getRad()
 {
@@ -33,32 +38,32 @@ vec3 Boid::setBound(vec3 currPos, float bound)
 	if(currPos.x < -bound)
 	{
 		velocity.x = -velocity.x;	
-		currPos.x = -bound;
+		//currPos.x = -bound;
 	}
 	else if(currPos.x > bound)
 	{
 		velocity.x = -velocity.x;
-		currPos.x = bound;
+		//currPos.x = bound;
 	}
 	if(currPos.y < -bound)
 	{
 		velocity.y = -velocity.y;	
-		currPos.y = -bound;
+		//currPos.y = -bound;
 	}
 	else if(currPos.y > bound)
 	{
 		velocity.y = -velocity.y;
-		currPos.y = bound;
+		//currPos.y = bound;
 	}
 	if(currPos.z < -bound)
 	{
 		velocity.z = -velocity.z;	
-		currPos.z = -bound;
+		//currPos.z = -bound;
 	}
 	else if(currPos.z > bound)
 	{
 		velocity.z = -velocity.z;
-		currPos.z = bound;
+		//currPos.z = bound;
 	}
 	
 	return currPos;
@@ -67,12 +72,14 @@ vec3 Boid::setBound(vec3 currPos, float bound)
 void Boid::boundBoid()
 {
 
+	vec3 center = getCenter();
+	
 	vec3 p1 = posBoid.p1;
 	vec3 p2 = posBoid.p2;
 	vec3 p3 = posBoid.p3;
-	float bound = 10.0f;
+	//float bound = 100.0f;
 	
-
+	//center = setBound(center, bound);
 	p1 = setBound(p1, bound);
 	p2 = setBound(p2, bound);
 	p3 = setBound(p3, bound);
@@ -101,7 +108,7 @@ void Boid::printVec3(vec3 toPrint)
 vec3 Boid::velLim(vec3 vel)
 {
 	
-	float velLimitUpper = 0.1f;
+	float velLimitUpper = 0.5f;
 	if(length(vel) > velLimitUpper && length(vel) > 0)
 		vel = (vel / length(vel)) * velLimitUpper;
 	
@@ -114,11 +121,11 @@ vec3 Boid::velLim(vec3 vel)
 	
 	return vel;
 }
-void Boid::resolveForces()
+void Boid::resolveForces(float dt)
 {
-	velocity += newVelocity;
+	velocity += newVelocity * dt;
 	velocity = velLim(velocity);
-	
+
 	posBoid.p1 += velocity;
 	posBoid.p2 += velocity;
 	posBoid.p3 += velocity;
