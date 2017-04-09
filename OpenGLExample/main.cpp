@@ -51,8 +51,8 @@ bool play = false;
 Camera* activeCamera;
 float bound = 50.0f;
 
-float sep = 1.0f; //percent of separation
-float coh = 2.0f; // percent of cohesion
+float sep = 0.4f; //percent of separation
+float coh = 1.0f; // percent of cohesion
 float allign = 1.0f; // percent of alligning speeds 1 = 100%
 
 GLFWwindow* window = 0;
@@ -532,7 +532,8 @@ void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 		newBoid.setPos(firstBoid.getPos());
 
 		float test = (float) i+1;
-		
+		int inBounds = (int)test % (int)bound;
+		test = (float)inBounds;
 		newPos = newBoid.getPos();
 
 		if(i % 3 == 0)
@@ -640,10 +641,10 @@ Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 	vec3 v1 = separation(allBoids[currBoid], allBoids, currBoid);
 	vec3 v2 = cohesion(allBoids[currBoid], allBoids, currBoid);
 	vec3 v3 = allignment(allBoids[currBoid], allBoids, currBoid);	
-	
+	vec3 v4 = allBoids[currBoid].placeToGo();
 
 
-	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3;
+	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3 + v4;
 	currBoidToMove.setVel(newVel);
 
 	return currBoidToMove;
@@ -727,7 +728,8 @@ int main(int argc, char *argv[])
     while (!glfwWindowShouldClose(window))
     {
 		dt = 0.003f;
-		glClearColor(0.5, 0.5, 0.5, 1.0);
+		//glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClearColor(0.8, 0.8, 0.8, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	//Clear color and depth buffers (Haven't covered yet)
 		drawBoids(boids, &boidsToDraw, &boidNorms, &boidInds);
 		if(play)

@@ -33,8 +33,11 @@ class Boid
 		vec3 setBound(vec3 posBoid, float bound);
 		float getRad();
 		void setBound(float boundingBox);
+		vec3 placeToGo();
+		void setNeighbours(vector<Boid> currNeighbours);
 		
 	private:
+		vector<Boid> neighbours;
 		float bound;
 		void center();
 		pos posBoid;

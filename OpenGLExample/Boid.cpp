@@ -25,6 +25,15 @@ Boid::Boid()
 Boid::~Boid()
 {
 }
+void Boid::setNeighbours(vector<Boid> currNeighbours)
+{
+	neighbours = currNeighbours;
+}
+vec3 Boid::placeToGo()
+{
+	vec3 place = vec3(10.0f,10.0f,10.0f);
+	return (getCenter()-place) / 1000.0f;
+}
 void Boid::setBound(float boundingBox)
 {
 	bound = boundingBox;
@@ -124,6 +133,7 @@ vec3 Boid::velLim(vec3 vel)
 }
 void Boid::resolveForces(float dt)
 {
+
 	velocity += newVelocity * dt;
 	velocity = velLim(velocity);
 	
@@ -136,9 +146,7 @@ void Boid::resolveForces(float dt)
 	
 	dir = (getCenter() - oldCenter);
 	dir = dir / length(dir);
-	//vec3 other = cross(up, dir);
-	 
-	//setOri(dir, up, other);
+
 	
 	newVelocity = vec3(0.0f,0.0f,0.0f);
 	/*
@@ -146,7 +154,7 @@ void Boid::resolveForces(float dt)
 	posBoid.p1 = (ori * vec4(posBoid.p1, 1.0f));
 	posBoid.p2 = (ori * vec4(posBoid.p2, 1.0f));
 	posBoid.p3 = (ori * vec4(posBoid.p3, 1.0f));
-	* */
+	*/
 }
 
 void Boid::center()
