@@ -19,7 +19,8 @@ Boid::Boid()
     } 
 	velocity = vec3(x,y,z);
 	radius = 50.0f;
-
+	up = vec3(0.0f, 1.0f, 0.0f);
+	
 }
 Boid::~Boid()
 {
@@ -125,14 +126,29 @@ void Boid::resolveForces(float dt)
 {
 	velocity += newVelocity * dt;
 	velocity = velLim(velocity);
-
+	
+	vec3 oldCenter = getCenter();
+	
 	posBoid.p1 += velocity;
 	posBoid.p2 += velocity;
 	posBoid.p3 += velocity;
 	boundBoid();
-	newVelocity = vec3(0.0f,0.0f,0.0f);
 	
+	dir = (getCenter() - oldCenter);
+	dir = dir / length(dir);
+	//vec3 other = cross(up, dir);
+	 
+	//setOri(dir, up, other);
+	
+	newVelocity = vec3(0.0f,0.0f,0.0f);
+	/*
+	ori = orientation(dir, up);
+	posBoid.p1 = (ori * vec4(posBoid.p1, 1.0f));
+	posBoid.p2 = (ori * vec4(posBoid.p2, 1.0f));
+	posBoid.p3 = (ori * vec4(posBoid.p3, 1.0f));
+	* */
 }
+
 void Boid::center()
 {
 	vec3 p1 = posBoid.p1;
@@ -166,11 +182,26 @@ vec3 Boid::getVel()
 {
 	return velocity;
 }
-void Boid::setOri(mat4 newOri)
+void Boid::setOri(vec3 dir, vec3 up, vec3 other)
 {
-	orientation = newOri;
+	dir = dir/length(dir);
+	up = up/length(up);
+	other = other/length(other);
+
+	ori[0][0] = other.x;
+	ori[0][1] = other.y;
+	ori[0][2] = other.z;
+	
+	ori[1][0] = up.x;
+	ori[1][1] = up.y;
+	ori[1][2] = up.z;
+	
+	ori[2][0] = dir.x;
+	ori[2][1] = dir.y;
+	ori[2][2] = dir.z;
+
 }
 mat4 Boid::getOri()
 {
-	return orientation;
+	return ori;
 }

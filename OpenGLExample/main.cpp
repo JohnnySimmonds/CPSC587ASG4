@@ -742,19 +742,14 @@ int main(int argc, char *argv[])
 					for(int i = 0; i <boids.size(); i++)
 						boids[i].resolveForces(dt);
 			
-			
+					
 					extratime = dt;
 					dt -= timestep;
 					
 				}
 			}
 		
-        //loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
-        //render(vao, 0, indices.size(), program, vbo, points, normals, indices); // call function to draw our scene
-		
-		//loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
-       // render(vao, 0, fileInds.size(), program, vbo, filePoints, fileNormals, fileInds); // call function to draw our scene
-			
+	
 		loadUniforms(program, winRatio*perspectiveMatrix*cam.getMatrix(), moveObj);
 		render(vao, 0, boidInds.size(), program, vbo, boidsToDraw, boidNorms, boidInds); // call function to draw our scene
 		

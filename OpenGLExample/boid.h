@@ -1,6 +1,7 @@
 #pragma once
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 #define PI 3.14159265359
 using namespace glm;
@@ -22,7 +23,7 @@ class Boid
 		pos getPos();
 		void setVel(vec3 newVel);
 		vec3 getVel();
-		void setOri(mat4 newOri);
+		void setOri(vec3 dir, vec3 up, vec3 other);
 		mat4 getOri();
 		void resolveForces(float dt);
 		vec3 getCenter();
@@ -43,6 +44,6 @@ class Boid
 		vec3 newVelocity;
 		vec3 dir;
 		vec3 up;
-		mat4 orientation;
+		mat4 ori;
 		
 };
