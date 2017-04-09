@@ -4,6 +4,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 #define PI 3.14159265359
+#include <vector>
 using namespace glm;
 using namespace std;
 struct pos
@@ -34,10 +35,11 @@ class Boid
 		float getRad();
 		void setBound(float boundingBox);
 		vec3 placeToGo();
-		void setNeighbours(vector<Boid> currNeighbours);
+		//void setNeighbours(vector<Boid>* currNeighbours);
+		//vector<Boid>* getNeighbours();
 		
 	private:
-		vector<Boid> neighbours;
+		//vector<Boid>* neighbours;
 		float bound;
 		void center();
 		pos posBoid;

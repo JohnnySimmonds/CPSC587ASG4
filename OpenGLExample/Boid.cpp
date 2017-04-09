@@ -25,10 +25,16 @@ Boid::Boid()
 Boid::~Boid()
 {
 }
-void Boid::setNeighbours(vector<Boid> currNeighbours)
+/*
+void Boid::setNeighbours(vector<Boid>* currNeighbours)
 {
 	neighbours = currNeighbours;
 }
+vector<Boid>* Boid::getNeighbours()
+{
+	return neighbours;
+}
+* */
 vec3 Boid::placeToGo()
 {
 	vec3 place = vec3(10.0f,10.0f,10.0f);
@@ -99,13 +105,14 @@ void Boid::boundBoid()
 	newPos.p2 = p2;
 	newPos.p3 = p3;
 	
+	/*
 	cout << "P1 : "<< endl;
 	printVec3(p1);
 	cout << "P2 : " << endl;
 	printVec3(p2);
 	cout << "P3 : "<< endl;
 	printVec3(p3);
-	
+	*/
 	setPos(newPos);
 
 }

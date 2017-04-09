@@ -51,8 +51,8 @@ bool play = false;
 Camera* activeCamera;
 float bound = 50.0f;
 
-float sep = 0.4f; //percent of separation
-float coh = 1.0f; // percent of cohesion
+float sep = 0.5f; //percent of separation
+float coh = 2.0f; // percent of cohesion
 float allign = 1.0f; // percent of alligning speeds 1 = 100%
 
 GLFWwindow* window = 0;
@@ -569,7 +569,7 @@ bool neighbours(Boid boidToCompare, Boid currBoid)
 }
 
 /*collision avoidence with neighbours*/
-vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid)
+vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> currNeighbours)
 {
 	vec3 sepForce = vec3(0.0f,0.0f,0.0f);
 	for(int i = 0; i < allBoids.size(); i++)
@@ -582,20 +582,28 @@ vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid)
 	}
 	return -sepForce;
 }
-/*flock centering*/
-vec3 cohesion(Boid boid, vector<Boid> allBoids, int currBoid)
+vector<Boid> setBoidNeighbours(Boid boid, vector<Boid> allBoids, int currBoid)
 {
-	vec3 projCenter = vec3(0.0f,0.0f,0.0f);
-
 	vector<Boid> neighboursCurr;
 	for(int i = 0; i < allBoids.size(); i++)
 	{
 		if(i != currBoid && neighbours(allBoids[i], boid))
 		{
+
 			neighboursCurr.push_back(allBoids[i]);
 		}
 		
 	}
+
+	return neighboursCurr;
+}
+/*flock centering*/
+vec3 cohesion(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> currNeighbours)
+{
+	vec3 projCenter = vec3(0.0f,0.0f,0.0f);
+
+	vector<Boid> neighboursCurr = currNeighbours;
+
 	if(neighboursCurr.size() == 0)
 		return vec3(0.0f,0.0f,0.0f);
 		
@@ -610,18 +618,11 @@ vec3 cohesion(Boid boid, vector<Boid> allBoids, int currBoid)
 	
 }
 /*Matching velocity*/
-vec3 allignment(Boid boid, vector<Boid> allBoids, int currBoid)
+vec3 allignment(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> currNeighbours)
 {
-	vector<Boid> neighboursCurr;
+	vector<Boid> neighboursCurr = currNeighbours;
 	vec3 allign = vec3(0.0f,0.0f,0.0f);
-	for(int i = 0; i < allBoids.size(); i++)
-	{
-		if(i != currBoid && neighbours(allBoids[i], boid))
-		{
-			neighboursCurr.push_back(allBoids[i]);
-		}
-		
-	}
+
 	if(neighboursCurr.size() == 0)
 		return vec3(0.0f,0.0f,0.0f);
 		
@@ -637,14 +638,16 @@ vec3 allignment(Boid boid, vector<Boid> allBoids, int currBoid)
 Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 {
 	Boid currBoidToMove = allBoids[currBoid];
-
-	vec3 v1 = separation(allBoids[currBoid], allBoids, currBoid);
-	vec3 v2 = cohesion(allBoids[currBoid], allBoids, currBoid);
-	vec3 v3 = allignment(allBoids[currBoid], allBoids, currBoid);	
+	vector<Boid> currNeighbours = setBoidNeighbours(currBoidToMove, allBoids, currBoid);
+	vec3 v1 = separation(allBoids[currBoid], allBoids, currBoid, currNeighbours);
+	vec3 v2 = cohesion(allBoids[currBoid], allBoids, currBoid,currNeighbours);
+	vec3 v3 = allignment(allBoids[currBoid], allBoids, currBoid, currNeighbours);	
 	vec3 v4 = allBoids[currBoid].placeToGo();
+	
+	//cout << "NUMBER OF NEIGHBOURS: " << currNeighbours.size() << endl;
+	//allBoids[currBoid].getNeighbours()->clear();
 
-
-	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3 + v4;
+	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3;// + v4;
 	currBoidToMove.setVel(newVel);
 
 	return currBoidToMove;
@@ -721,7 +724,7 @@ int main(int argc, char *argv[])
 	mat4 moveObj = mat4(1.0f);
 	float dt;
 	float time = 0.0f;
-	float timestep = 1.0f / 1000.0f;
+	float timestep = 1.0f / 500.0f;
 	float extratime;
     // run an event-triggered main loop
 
