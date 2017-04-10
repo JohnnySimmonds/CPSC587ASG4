@@ -51,7 +51,7 @@ bool play = false;
 Camera* activeCamera;
 float bound = 50.0f;
 
-float sep = 0.5f; //percent of separation
+float sep = 1.0f; //percent of separation
 float coh = 1.0f; // percent of cohesion
 float allign = 1.0f; // percent of alligning speeds 1 = 100%
 
@@ -516,7 +516,7 @@ void initCube(vector<vec3>* position, vector<vec3>* normals, vector<unsigned int
 }
 void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 {
-	int numBoids = 100;
+	int numBoids = 200;
 	Random random;
 	allBoids->push_back(firstBoid);
 	float randomNum;
@@ -562,7 +562,7 @@ void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 }
 bool neighbours(Boid boidToCompare, Boid currBoid)
 {
-	if(fabs(length(boidToCompare.getCenter() - currBoid.getCenter())) < 10.0f)
+	if(fabs(length(boidToCompare.getCenter() - currBoid.getCenter())) < currBoid.getRad())
 		return true;
 		
 	return false;
@@ -647,6 +647,7 @@ Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 	//cout << "NUMBER OF NEIGHBOURS: " << currNeighbours.size() << endl;
 	//allBoids[currBoid].getNeighbours()->clear();
 
+/*Radius for neighbours for seperation should be smaller than coh and allign*/
 	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3;// + v4;
 	currBoidToMove.setVel(newVel);
 

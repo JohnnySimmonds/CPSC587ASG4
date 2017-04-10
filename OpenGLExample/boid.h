@@ -35,8 +35,7 @@ class Boid
 		float getRad();
 		void setBound(float boundingBox);
 		vec3 placeToGo();
-		//void setNeighbours(vector<Boid>* currNeighbours);
-		//vector<Boid>* getNeighbours();
+
 		
 	private:
 		//vector<Boid>* neighbours;
