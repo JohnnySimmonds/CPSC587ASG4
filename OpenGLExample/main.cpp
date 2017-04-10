@@ -576,11 +576,11 @@ vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> cur
 	{
 		if(i != currBoid && neighbours(allBoids[i], boid))
 		{
-			sepForce += normalize(allBoids[i].getCenter() - boid.getCenter());
+			sepForce += boid.getCenter() - allBoids[i].getCenter();
 		}
 		
 	}
-	return -sepForce;
+	return -normalize(sepForce);
 }
 vector<Boid> setBoidNeighbours(Boid boid, vector<Boid> allBoids, int currBoid)
 {
@@ -613,7 +613,7 @@ vec3 cohesion(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> currN
 	}
 
 		
-	vec3 cohesionDisp = projCenter - boid.getCenter();
+	vec3 cohesionDisp = normalize(projCenter - boid.getCenter());
 	return cohesionDisp;
 	
 }
@@ -631,7 +631,7 @@ vec3 allignment(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> cur
 		allign += neighboursCurr[i].getVel()/(float)neighboursCurr.size();
 	}
  
-	return allign;
+	return normalize(allign);
 }
 
 /* Apply rules to move the boids*/
