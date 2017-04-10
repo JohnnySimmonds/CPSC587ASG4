@@ -576,7 +576,7 @@ vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> cur
 	{
 		if(i != currBoid && neighbours(allBoids[i], boid))
 		{
-			sepForce += allBoids[i].getCenter() - boid.getCenter();
+			sepForce += normalize(allBoids[i].getCenter() - boid.getCenter());
 		}
 		
 	}
