@@ -51,10 +51,11 @@ bool play = false;
 Camera* activeCamera;
 float bound = 50.0f;
 
-float sep = 1.0f; //percent of separation
-float coh = 1.0f; // percent of cohesion
-float allign = 1.0f; // percent of alligning speeds 1 = 100%
-
+float sep;// = 1.0f; //percent of separation
+float coh;// = 1.0f; // percent of cohesion
+float allign;// = 1.0f; // percent of alligning speeds 1 = 100%
+float userFov;
+int numBoids;
 GLFWwindow* window = 0;
 
 mat4 winRatio = mat4(1.f);
@@ -147,7 +148,6 @@ void readFile(vector<vec3>* filePoints, vector<vec3>* fileNormals, vector<unsign
 	if(myFile.is_open())
 	{
 		myFile >> nextChar;
-		cout << nextChar;
 		while(!myFile.eof())
 		{
 			
@@ -178,12 +178,39 @@ void readFile(vector<vec3>* filePoints, vector<vec3>* fileNormals, vector<unsign
 					myFile >> nextChar;
 				}
 			}
+			else if (nextChar == 'S')
+			{
+					myFile >> sep;
+					myFile >> nextChar;
+			}
+			else if (nextChar == 'C')
+			{
+					myFile >> coh;
+					myFile >> nextChar;
+			}
+			else if (nextChar == 'A')
+			{
+					myFile >> allign;
+					myFile >> nextChar;
+			}
+			else if (nextChar == 'F')
+			{
+					myFile >> userFov;
+					myFile >> nextChar;
+			}
+			else if (nextChar == 'B')
+			{
+					myFile >> numBoids;
+					myFile >> nextChar;
+			}
 		}	
 	}
 	else
 	{
 		cout << "File not opened" << endl;
 	}
+	
+
 	
 	myFile.close();
 	
@@ -516,7 +543,7 @@ void initCube(vector<vec3>* position, vector<vec3>* normals, vector<unsigned int
 }
 void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 {
-	int numBoids = 200;
+
 	Random random;
 	allBoids->push_back(firstBoid);
 	float randomNum;
@@ -560,9 +587,16 @@ void initBoids(Boid firstBoid, vector<Boid>* allBoids)
 
 	}
 }
-bool neighbours(Boid boidToCompare, Boid currBoid)
+bool neighbours(Boid boidToCompare, Boid currBoid, bool isSep)
 {
-	if(fabs(length(boidToCompare.getCenter() - currBoid.getCenter())) < currBoid.getRad())
+	vec3 distVec = boidToCompare.getCenter() - currBoid.getCenter();
+	float dist = length(distVec);
+	float fov = dot(currBoid.getDir(), distVec);
+	float rad = currBoid.getRad();
+	//if(isSep)
+	//rad = 0.5f;
+		
+	if(fov > userFov && dist < rad)
 		return true;
 		
 	return false;
@@ -572,22 +606,22 @@ bool neighbours(Boid boidToCompare, Boid currBoid)
 vec3 separation(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> currNeighbours)
 {
 	vec3 sepForce = vec3(0.0f,0.0f,0.0f);
-	for(int i = 0; i < allBoids.size(); i++)
-	{
-		if(i != currBoid && neighbours(allBoids[i], boid))
-		{
-			sepForce += boid.getCenter() - allBoids[i].getCenter();
-		}
+	
+	if(currNeighbours.size() == 0)
+		return sepForce;
 		
+	for(int i = 0; i < currNeighbours.size(); i++)
+	{
+			sepForce +=  currNeighbours[i].getCenter() - boid.getCenter();
 	}
 	return -normalize(sepForce);
 }
-vector<Boid> setBoidNeighbours(Boid boid, vector<Boid> allBoids, int currBoid)
+vector<Boid> setBoidNeighbours(Boid boid, vector<Boid> allBoids, int currBoid, bool isSep)
 {
 	vector<Boid> neighboursCurr;
 	for(int i = 0; i < allBoids.size(); i++)
 	{
-		if(i != currBoid && neighbours(allBoids[i], boid))
+		if(i != currBoid && neighbours(allBoids[i], boid, isSep))
 		{
 
 			neighboursCurr.push_back(allBoids[i]);
@@ -612,7 +646,6 @@ vec3 cohesion(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> currN
 		projCenter += neighboursCurr[i].getCenter()/(float)neighboursCurr.size();
 	}
 
-		
 	vec3 cohesionDisp = normalize(projCenter - boid.getCenter());
 	return cohesionDisp;
 	
@@ -638,16 +671,13 @@ vec3 allignment(Boid boid, vector<Boid> allBoids, int currBoid, vector<Boid> cur
 Boid moveBoids(vector<Boid> allBoids, int currBoid, float dt)
 {
 	Boid currBoidToMove = allBoids[currBoid];
-	vector<Boid> currNeighbours = setBoidNeighbours(currBoidToMove, allBoids, currBoid);
+	vector<Boid> currNeighbours = setBoidNeighbours(currBoidToMove, allBoids, currBoid, true);
 	vec3 v1 = separation(allBoids[currBoid], allBoids, currBoid, currNeighbours);
+	currNeighbours = setBoidNeighbours(currBoidToMove, allBoids, currBoid, false);
 	vec3 v2 = cohesion(allBoids[currBoid], allBoids, currBoid,currNeighbours);
 	vec3 v3 = allignment(allBoids[currBoid], allBoids, currBoid, currNeighbours);	
 	vec3 v4 = allBoids[currBoid].placeToGo();
 	
-	//cout << "NUMBER OF NEIGHBOURS: " << currNeighbours.size() << endl;
-	//allBoids[currBoid].getNeighbours()->clear();
-
-/*Radius for neighbours for seperation should be smaller than coh and allign*/
 	vec3 newVel = currBoidToMove.getVel() + sep*v1 + coh*v2 + allign*v3;// + v4;
 	currBoidToMove.setVel(newVel);
 
@@ -693,7 +723,7 @@ int main(int argc, char *argv[])
 	vector<vec3> filePoints;
 	vector<vec3> fileNormals;
 	vector<unsigned int> fileInds;
-	char* filename = "boidPos.txt";
+	char* filename = "boidInfo.txt";
 	readFile(&filePoints, &fileNormals, &fileInds, filename); //fileNormals and fileInds not used atm not sure how to use for now...
 	
 	Boid firstBoid;
@@ -728,7 +758,7 @@ int main(int argc, char *argv[])
 	float timestep = 1.0f / 500.0f;
 	float extratime;
     // run an event-triggered main loop
-
+	
     while (!glfwWindowShouldClose(window))
     {
 		dt = 0.003f;
@@ -738,7 +768,6 @@ int main(int argc, char *argv[])
 		drawBoids(boids, &boidsToDraw, &boidNorms, &boidInds);
 		if(play)
 			{
-				//time += dt;
 				dt += extratime;
 				while(dt >= timestep)
 				{	

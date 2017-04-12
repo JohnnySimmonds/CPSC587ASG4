@@ -20,16 +20,26 @@ Boid::Boid()
 	velocity = vec3(x,y,z);
 	radius = 10.0f;
 	up = vec3(0.0f, 1.0f, 0.0f);
+	dir = vec3(0.0f,0.0f,0.0f);
 	
 }
+
 Boid::~Boid()
 {
 }
 
+vec3 Boid::getDir()
+{
+	return dir;
+}
+float Boid::getFieldOfView()
+{
+	return FoV;
+}
 vec3 Boid::placeToGo()
 {
 	vec3 place = vec3(10.0f,10.0f,10.0f);
-	return (getCenter()-place) / 1000.0f;
+	return normalize((getCenter()-place)) / 1000.0f;
 }
 void Boid::setBound(float boundingBox)
 {
@@ -135,15 +145,19 @@ void Boid::resolveForces(float dt)
 	boundBoid();
 	
 	dir = (getCenter() - oldCenter);
-	dir = dir / length(dir);
-
-	
+	//dir = dir / length(dir);
+	/*
+	if(length(dir) != 0)
+	{
+		vec3 dirNorm = normalize(dir);
+		ori = lookAt(dirNorm, getCenter(), up);
+		posBoid.p1 = (ori * vec4(posBoid.p1, 1.0f));
+		posBoid.p2 = (ori * vec4(posBoid.p2, 1.0f));
+		posBoid.p3 = (ori * vec4(posBoid.p3, 1.0f));
+			
+	}
+	* */
 	newVelocity = vec3(0.0f,0.0f,0.0f);
-	ori = lookAt(dir, getCenter(), up);
-	//ori = orientation(dir, up);
-	//posBoid.p1 = (ori * vec4(posBoid.p1, 1.0f));
-	//posBoid.p2 = (ori * vec4(posBoid.p2, 1.0f));
-	//posBoid.p3 = (ori * vec4(posBoid.p3, 1.0f));
 	
 }
 

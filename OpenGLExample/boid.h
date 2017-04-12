@@ -35,10 +35,11 @@ class Boid
 		float getRad();
 		void setBound(float boundingBox);
 		vec3 placeToGo();
-
+		float getFieldOfView();
+		vec3 getDir();
 		
 	private:
-		//vector<Boid>* neighbours;
+		float FoV;
 		float bound;
 		void center();
 		pos posBoid;
